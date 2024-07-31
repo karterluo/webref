@@ -9,8 +9,7 @@ type RefData = {
   // but we will likely need it to calculate intersections for drag multi-selections.
 };
 
-type State = {
-  // Reference image management
+type RefState = {
   // Keep track of reference images by mapping URL to RefData (x, y, width, height)
   // The reference image components are created based on this map.
   // After every drag and resize operation, the reference image component will update the store to keep the map in sync.
@@ -19,24 +18,14 @@ type State = {
   addRef: (url: string) => void;
   delRef: (url: string) => void;
   setRef: (url: string, data: RefData) => void; // Used by reference image components to update/sync the store
-
-  // Selection management, may have to be updated to support multiple selection
-  selectedUrl: string;
-  setSelectedUrl: (url: string) => void;
-
-  // Context menu management
-  contextMenuX: number;
-  contextMenuY: number;
-  contextMenuShown: boolean;
-  hideContextMenu: () => void;
-  showContextMenu: (x: number, y: number) => void;
 };
 
-const useStore = create<State>((set) => ({
+// Zustand with Typescript requires curried create. Notice create<T>() instead of create<T>.
+const useRefStore = create<RefState>()((set) => ({
   refMap: new Map(),
   addRef: (url: string) => {
-    console.log("addRef\n\n", url);
     set((state) => {
+      console.log("addRef", url);
       const newRefMap = new Map(state.refMap);
       newRefMap.set(url, {
         x: 0,
@@ -48,7 +37,7 @@ const useStore = create<State>((set) => ({
     });
   },
   delRef: (url: string) => {
-    console.log("delRef\n\n", url);
+    console.log("delRef", url);
     set((state) => {
       const newRefMap = new Map(state.refMap);
       newRefMap.delete(url);
@@ -57,22 +46,13 @@ const useStore = create<State>((set) => ({
     });
   },
   setRef: (url: string, data: RefData) => {
-    // update export map ?
-    console.log("setRef\n\n", url, data);
+    console.log("setRef", url, data);
     set((state) => {
       const newRefMap = new Map(state.refMap);
       newRefMap.set(url, data);
       return { refMap: newRefMap };
     });
   },
-  selectedUrl: "",
-  setSelectedUrl: (url: string) => set({ selectedUrl: url }),
-  contextMenuX: 0,
-  contextMenuY: 0,
-  contextMenuShown: false,
-  hideContextMenu: () => set({ contextMenuShown: false }),
-  showContextMenu: (x: number, y: number) =>
-    set({ contextMenuX: x, contextMenuY: y, contextMenuShown: true }),
 }));
 
-export default useStore;
+export default useRefStore;

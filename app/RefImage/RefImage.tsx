@@ -1,27 +1,43 @@
 import React, { useRef } from "react";
-import styles from "./RefImage.module.css";
 import { Rnd } from "react-rnd";
-import useStore from "./useStore";
+import useRefStore from "@/stores/useRefStore";
+import useSelectionStore from "@/stores/useSelectionStore";
+import useContextMenuStore from "@/stores/useContextMenuStore";
+import styles from "./RefImage.module.css";
+import type { RndDragEvent } from "react-rnd";
 
 type Props = {
   url: string;
 };
 
 export default function RefImage({ url }: Props) {
-  const selectedUrl = useStore((state) => state.selectedUrl);
-  const setSelectedUrl = useStore((state) => state.setSelectedUrl);
-  const showContextMenu = useStore((state) => state.showContextMenu);
-  const hideContextMenu = useStore((state) => state.hideContextMenu);
-  const setRef = useStore((state) => state.setRef);
+  const setRef = useRefStore((state) => state.setRef);
+  const selectedUrls = useSelectionStore((state) => state.selectedUrls);
+  const selectUrl = useSelectionStore((state) => state.selectUrl);
+  const unselectUrl = useSelectionStore((state) => state.unselectUrl);
+  const clearSelection = useSelectionStore((state) => state.clearSelection);
+  const contextMenuShown = useContextMenuStore(
+    (state) => state.contextMenuShown,
+  );
+  const showContextMenu = useContextMenuStore((state) => state.showContextMenu);
+  const hideContextMenu = useContextMenuStore((state) => state.hideContextMenu);
+  const refData = useRefStore((state) => state.refMap.get(url));
   const rnd = useRef<Rnd | null>(null);
   const img = useRef<HTMLImageElement | null>(null);
-  const refData = useStore((state) => state.refMap.get(url));
 
   // Sync the position and size of the image with the store
   function syncRef() {
     if (!rnd.current || !refData) return;
     const { x, y } = rnd.current.getDraggablePosition();
     const { width, height } = rnd.current.resizable.size;
+    // Only update store if there are changes
+    if (
+      refData.x === x &&
+      refData.y === y &&
+      refData.width === width &&
+      refData.height === height
+    )
+      return;
     setRef(url, {
       x,
       y,
@@ -30,10 +46,27 @@ export default function RefImage({ url }: Props) {
     });
   }
 
+  // Modify selection and hide context menu when clicking on RefImage
+  // Use mouseDown instead of click to prevent deselection when dragging multiple images (click is triggered after mouseUp after drag)
   function handleMouseDown(e: MouseEvent) {
-    e.stopPropagation(); // Prevent dragging from propagating to Canvas
-    hideContextMenu();
-    setSelectedUrl(url);
+    e.stopPropagation(); // Prevent mousedown from propagating to Canvas
+    // Right mouse button is handled by context menu.
+    if (e.button == 2) return;
+    if (e.shiftKey) {
+      // Toggle selection if shift held
+      if (selectedUrls.has(url)) {
+        unselectUrl(url);
+      } else {
+        selectUrl(url);
+      }
+    } else {
+      // Select only this if shift not held
+      clearSelection();
+      selectUrl(url);
+    }
+    if (contextMenuShown) {
+      hideContextMenu();
+    }
   }
 
   function handleContextMenu(e: MouseEvent) {
@@ -42,6 +75,18 @@ export default function RefImage({ url }: Props) {
     e.preventDefault();
     e.stopPropagation();
     showContextMenu(e.clientX, e.clientY);
+  }
+
+  function handleDrag(e: RndDragEvent) {
+    console.log("drag", e);
+  }
+
+  function handleDragStop(e: RndDragEvent) {
+    syncRef();
+  }
+
+  function handleResizeStop(e: MouseEvent | TouchEvent) {
+    syncRef();
   }
 
   // Update component and store's RefData on image load to overwrite "auto" height with numerical height
@@ -59,8 +104,9 @@ export default function RefImage({ url }: Props) {
     <Rnd
       ref={rnd}
       lockAspectRatio={true}
-      onDragStop={syncRef}
-      onResizeStop={syncRef}
+      onDrag={handleDrag}
+      onDragStop={handleDragStop}
+      onResizeStop={handleResizeStop}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       default={{
@@ -77,10 +123,12 @@ export default function RefImage({ url }: Props) {
           onLoad={handleImgLoad}
           draggable="false"
           src={url}
-          className={`${styles.innerImg} ${selectedUrl == url ? styles.selected : ""}`}
+          // Show outline when selected...
+          className={`${styles.innerImg} ${selectedUrls.has(url) ? styles.selected : ""}`}
           alt=""
         />
-        {selectedUrl == url && (
+        {/* ...but show handles only when only image selected */}
+        {selectedUrls.has(url) && selectedUrls.size === 1 && (
           <React.Fragment>
             <div className={`${styles.handle} ${styles.handle1}`} />
             <div className={`${styles.handle} ${styles.handle2}`} />

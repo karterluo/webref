@@ -1,8 +1,9 @@
-import useStore from "./useStore";
+import useRefStore from "@/stores/useRefStore";
 import styles from "./Debug.module.css";
 
 export default function Debug() {
-  const refMap = useStore((state) => state.refMap);
+  const refMap = useRefStore((state) => state.refMap);
+
   return (
     <div className={styles.Debug}>
       <button

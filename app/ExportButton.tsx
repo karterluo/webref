@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./ExportButton.module.css";
 import useStore from "./useStore";
+import JSZip from "jszip";
 
 interface RefData {
   x: number;
@@ -10,10 +11,9 @@ interface RefData {
 }
 
 export default function ExportButton() {
-  const store = useStore();
-
-  const exportData = () => {
-    const refMap = store.refMap;
+  const refMap = useStore((state) => state.refMap);
+  // Function to store the JSON information
+  const jsonRecord = () => {
     const jsonData: Record<string, RefData> = {};
 
     refMap.forEach((value, key) => {
@@ -21,9 +21,18 @@ export default function ExportButton() {
     });
 
     const jsonString = JSON.stringify(jsonData, null, 2);
-
-    // Handle the JSON data here, e.g., save it to a file, display it, etc.
     console.log(jsonString);
+    return jsonString;
+  };
+
+  const exportImg = () => {
+  };
+
+  const exportData = () => {
+    const zip = new JSZip();
+    zip.file("refMap.json", jsonRecord());
+    const imgZip = zip.folder("Images");
+
   };
 
   return (

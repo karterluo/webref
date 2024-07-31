@@ -13,6 +13,7 @@ export default function Home() {
       <UploadButton />
       <ExportButton />
       <ContextMenu />
+      <Drop />
       <Debug />
     </main>
   );

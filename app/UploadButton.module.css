@@ -4,3 +4,9 @@
     left: 0;
     color: transparent; /* Hide the default button text */
 }
+
+.ExportButton {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}

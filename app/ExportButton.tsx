@@ -26,11 +26,13 @@ export default function ExportButton() {
     return jsonString;
   };
 
+  const exportImages = () => {};
+
   const exportData = () => {
     const zip = new JSZip();
     zip.file("refMap.json", jsonRecord());
     const imgZip = zip.folder("Images");
-    
+
     // Generate timestamped filename
     const timestamp = new Date()
       .toISOString()

@@ -4,25 +4,20 @@ Browser-based reference board (like PureRef) for people who don't want to or can
 
 ## to-do
 
-- [ ] multi select manipulation
-    - I don't think putting them in a temporary Rnd will work, or it will be extremely convoluted.
-    - On each RefImage, calculate the delta x/y and apply to all selected elements using `setRef(url)` on the urls in `selectedUrls`
-    - based on pureref behavior, drag happens when dragging an individual selected image, but resize only happens when resizing the entire bounding box. So what if we use the delta math from the previous bullet for the drag and for the resize we spawn an empty Rnd positioned (but not structurally) around the images. and then we listen to the events on the SelectionResizer to also scale up the selected elements in a loop. This can be done by setting all of their resizing anchor points to the same as the wrapping Rnd.
+- [ ] CMD/CTRL + A select all keyboard shortcut
 - [ ] drag select
     - [ ] detect drag start and drag end on canvas, on drag move update selection box. will this work in FF?
     - [ ] loop through all RefImages and test if intersects selection box using x/y/width/height 
-    - [ ] mass delete, just loop through urls
-    - [ ] mass move and resize, move selected Rnds into transparent wrapper Rnd?
-- [ ] Centralize utilities into a lib? For example, all file/upload related utilities into one neat function, etc.
+- [ ] selection resizing
+- [ ] Big cleanup and refactor
 - [ ] arrange images optimally
 - [ ] undo/redo - keep stack of "Action" objects - undo function takes in Action and undoes it based on Action type using Action data
 - [ ] save useRefStore state in browser storage using `zustand` persist
     - Map serializing can be handled with superjson, but what about storing the blobs? IndexedDB looks like the solution, but it seems complicated.
 - [ ] pan and zoom canvas
-    - what if used middle click/scroll to control css transform modifiers on Canvas?
-    - idk how we'd do infinite canvas, but we'd at least give the ability to zoom and pan around
-    - maybe we can just make the canvas really big. Like make the pixel dimensions huge. 
-    - I don't think we can modify Canvas size on the fly because Rnd uses it to measure offset
+    - Use middle click/scroll to control css transform modifiers on Canvas?
+    - Idk how we would achieve infinite canvas, but we can at least give the ability to zoom and pan on a finite canvas
+    - We can't modify Canvas size because Rnd measures its parent
 
 ## for kluo
 
@@ -39,6 +34,8 @@ Browser-based reference board (like PureRef) for people who don't want to or can
 
 ## done
 
+- [x] select all button
+- [x] fine-tune mouse event logic
 - [x] shift click select
 - [x] support for dragging in image links from other browser windows
 - [x] css animation for drop prompt when dragging over with file
